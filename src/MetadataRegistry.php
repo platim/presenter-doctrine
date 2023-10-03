@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Platim\Presenter\Doctrine;
 
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\Mapping\ClassMetadata;
+use Platim\Presenter\Contracts\Metadata\MetadataRegistryInterface;
 
-class MetadataRegistry
+class MetadataRegistry implements MetadataRegistryInterface
 {
     private array $metadata = [];
 
@@ -16,16 +16,14 @@ class MetadataRegistry
     ) {
     }
 
-    public function getMetadataForClass(string $class): ?ClassMetadata
+    public function getMetadataForClass(string $class): ?MetadataProxy
     {
         if (\array_key_exists($class, $this->metadata)) {
             return $this->metadata[$class];
         }
         $em = $this->managerRegistry->getManagerForClass($class);
-        if ($em) {
-            return $this->metadata[$class] = $em->getClassMetadata($class);
-        }
+        $this->metadata[$class] = $em ? new MetadataProxy($em->getClassMetadata($class)) : null;
 
-        return $this->metadata[$class] = null;
+        return $this->metadata[$class];
     }
 }
