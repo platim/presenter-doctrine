@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Platim\Presenter\Doctrine;
 
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\Proxy;
 use Platim\Presenter\Contracts\Metadata\MetadataRegistryInterface;
 
 class MetadataRegistry implements MetadataRegistryInterface
@@ -25,5 +26,15 @@ class MetadataRegistry implements MetadataRegistryInterface
         $this->metadata[$class] = $em ? new MetadataProxy($em->getClassMetadata($class)) : null;
 
         return $this->metadata[$class];
+    }
+
+    public function getObjectClass(object $object): string
+    {
+        $class = $object::class;
+        if (is_subclass_of($class, Proxy::class)) {
+            $class = get_parent_class($class);
+        }
+
+        return $class;
     }
 }
